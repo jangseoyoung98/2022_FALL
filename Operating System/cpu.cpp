@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include <sysinfoapi.h>
+#include <sysinfoapi.h> // GetSystemInfo, GetSystemTime
 #include <stdio.h>
 
 
