@@ -60,8 +60,27 @@ int main() {
 		a[n] = rr;
 
 		// cpu 사용량 출력 시작
+		if (n == 0)
+			printf("%d %d.%02d.%02d  %02d:%02d:%02d  : ", n, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
 
+		if (n >= 1)
+			printf("%d %d.%02d.%02d  %02d:%02d:%02d  : [CPU Load: %0.2f%%]", n, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond, rr);
 
+		if (n < 5)
+			printf("\n");
+		else if (n >= 5 && n < 10)
+			printf(" [5sec avg]: %0.2f%%\n",
+				(double)(a[n - 4] + a[n - 3] + a[n - 2] + a[n - 1] + a[n]) / 5);
+		else if (n >= 10 && n < 15)
+			printf(" [5sec avg]: %0.2f%% [10sec avg]: %0.2f%%\n",
+				(double)(a[n - 4] + a[n - 3] + a[n - 2] + a[n - 1] + a[n]) / 5,
+				(double)(a[n - 9] + a[n - 8] + a[n - 7] + a[n - 6] + a[n - 5] + a[n - 4] + a[n - 3] + a[n - 2] + a[n - 1] + a[n]) / 10);
+		else if (n >= 15)
+			printf(" [5sec avg]: %0.2f%% [10sec avg]: %0.2f%% [15sec avg]: %0.2f%%\n",
+				(double)(a[n - 4] + a[n - 3] + a[n - 2] + a[n - 1] + a[n]) / 5,
+				(double)(a[n - 9] + a[n - 8] + a[n - 7] + a[n - 6] + a[n - 5] + a[n - 4] + a[n - 3] + a[n - 2] + a[n - 1] + a[n]) / 10,
+				(double)(a[n - 14] + a[n - 13] + a[n - 12] + a[n - 11] + a[n - 10] + a[n - 9] + a[n - 8] + a[n - 7] + a[n - 6] + a[n - 5] + a[n - 4] + a[n - 3] + a[n - 2] + a[n - 1] + a[n]) / 15);
+		
 		n++;
 	}
 
