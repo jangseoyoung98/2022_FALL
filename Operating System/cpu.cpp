@@ -7,14 +7,6 @@
 #define SLEEP_TIME 1000
 #define MAX_PROCESS 1024
 
-/* 
-// FILETIME - 파일 시간을 사용하여 작업할 때 매크로 상수 정의하겠음
-#define SEC ((int64) 10000000) // 100 나노초 간격 기반 
-#define MIN (60 * SEC)
-#define HOUR (60 * MIN)
-#define DAY (24 * HOUR)
-*/
-
 // cpu load 출력 함수
 double cpuLoad() {
 
@@ -63,7 +55,7 @@ double cpuLoad() {
 	__int64 KernelT_1 = KeT.QuadPart;
 	__int64 UserT_1 = UsT.QuadPart;
 
-	Sleep(1000); // 1초 기다림
+	Sleep(50); // 0.5초 기다림
 
 	GetSystemTimes(&IdleT, &KernelT, &UserT);
 	IdT.LowPart = IdleT.dwLowDateTime;
@@ -77,17 +69,15 @@ double cpuLoad() {
 	__int64 KernelT_2 = KeT.QuadPart;
 	__int64 UserT_2 = UsT.QuadPart;
 
-	// 1초 동안!
+	// CPU 사용률 - 1초
 	__int64 IdleTime = IdleT_2 - IdleT_1;
 	__int64 KernelTime = KernelT_2 - KernelT_1;
 	__int64 UserTime = UserT_2 - UserT_1;
 
 	double result = (double)(UserTime + KernelTime - IdleTime) / (UserTime + KernelTime) * 100;
 
-	printf("%.2f", result);
 	return result;
 
-	// 오~~ 일단 1초 동안은 한 거 같다!
 }
 
 
@@ -104,15 +94,36 @@ int main(int arg, char* argv) { // main()의 매개변수 삽입
 	// 2-1) 번호 + 현재 시간 (기준 시간 1초) -> OK
 	SYSTEMTIME now;
 	unsigned int i = 0;
+	double arr[MAX_PROCESS];
 
 	for (; i < MAX_LOOP; i++) {
-	
+
+		// 2-2) cpu load 계산
+		double result = cpuLoad();
+		arr[i] = result;
+
 		GetLocalTime(&now);
 		printf(" %3d %04d.%02d.%02d %02d:%02d:%02d : ", i, now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
 
-		// 2-2) cpu load 계산
-		cpuLoad();
+		if(i >= 1)
+			printf("[CPU Load: %0.2f%%] ", arr[i]);
 		
+		double avg5 = 0, avg10 = 0, avg15 = 0;
+
+		if (i >= 5) {
+			avg5 = (arr[i - 1] + arr[i - 2] + arr[i - 3] + arr[i - 4] + arr[i - 5]) / 5;
+			printf("[5sec avg: %0.2f%%] ", avg5);
+		}
+		if (i >= 10) {
+			avg10 = (avg5 * 5 + arr[i - 6] + arr[i - 7] + arr[i - 8] + arr[i - 9] + arr[i - 10]) / 10;
+			printf("[10sec avg: %0.2f%%] ", avg10);
+		}
+		if (i >= 15) {
+			avg15 = (avg10 * 10 + arr[i - 11] + arr[i - 12] + arr[i - 13] + arr[i - 14] + arr[i - 15]) / 15;
+			printf("[15sec avg: %0.2f%%] ", avg15);
+		}
+
+		printf("\n");
 		Sleep(SLEEP_TIME); // 1000밀리초 = 1초
 
 		// continue;
