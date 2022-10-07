@@ -55,7 +55,7 @@ double cpuLoad() {
 	__int64 KernelT_1 = KeT.QuadPart;
 	__int64 UserT_1 = UsT.QuadPart;
 
-	Sleep(50); // 0.5초 기다림
+	Sleep(SLEEP_TIME); // 1초 기다림
 
 	GetSystemTimes(&IdleT, &KernelT, &UserT);
 	IdT.LowPart = IdleT.dwLowDateTime;
@@ -106,25 +106,24 @@ int main(int arg, char* argv) { // main()의 매개변수 삽입
 		printf(" %3d %04d.%02d.%02d %02d:%02d:%02d : ", i, now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
 
 		if(i >= 1)
-			printf("[CPU Load: %0.2f%%] ", arr[i]);
+			printf("[CPU Load: %3.2f%%] ", arr[i]);
 		
 		double avg5 = 0, avg10 = 0, avg15 = 0;
 
 		if (i >= 5) {
 			avg5 = (arr[i - 1] + arr[i - 2] + arr[i - 3] + arr[i - 4] + arr[i - 5]) / 5;
-			printf("[5sec avg: %0.2f%%] ", avg5);
+			printf("[5sec avg: %3.2f%%] ", avg5);
 		}
 		if (i >= 10) {
 			avg10 = (avg5 * 5 + arr[i - 6] + arr[i - 7] + arr[i - 8] + arr[i - 9] + arr[i - 10]) / 10;
-			printf("[10sec avg: %0.2f%%] ", avg10);
+			printf("[10sec avg: %3.2f%%] ", avg10);
 		}
 		if (i >= 15) {
 			avg15 = (avg10 * 10 + arr[i - 11] + arr[i - 12] + arr[i - 13] + arr[i - 14] + arr[i - 15]) / 15;
-			printf("[15sec avg: %0.2f%%] ", avg15);
+			printf("[15sec avg: %3.2f%%] ", avg15);
 		}
 
 		printf("\n");
-		Sleep(SLEEP_TIME); // 1000밀리초 = 1초
 
 		// continue;
 	}
