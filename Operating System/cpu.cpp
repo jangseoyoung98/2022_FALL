@@ -1,23 +1,18 @@
-#include <Windows.h> // Sleep()
-#include <stdio.h>
+#include <Windows.h>	// Sleep() 등 
 #include <sysinfoapi.h> // GetSystemInfo()
+#include <winnt.h>		// ULARGE_INTEGER 
 
-// 매크로 상수 정의
+#include <stdio.h>
+
+
+// 매크로 상수
 #define MAX_LOOP 100
 #define SLEEP_TIME 1000
 #define MAX_PROCESS 1024
 
-// cpu load 출력 함수
+// cpu load 계산 함수 (기준 시간 1 sec)
 double cpuLoad() {
-
-	// 1) 기준 시간 : 1초
-
-	FILETIME IdleT, KernelT, UserT;
 	
-	// ★ 시간을 상위/하위 32비트(4바이트)로 구분한다는 게.. -> 아 둘이 연결해야 하나? 
-	// 옛날 컴파일러는 64비트를 지원하지 않아서 32비트씩 분리해서 지원함
-	// The low part contains the least significant 32 bits. The high part contains the most significant 32 bits
-	// DWOR = unsigned long = 4 bytes -> DWORD * 2 = __int64
 	/*
 	GetSystemTimes(&IdleT, &KernelT, &UserT);
 	DWORD IdLow1 = IdleT.dwLowDateTime;
@@ -27,7 +22,7 @@ double cpuLoad() {
 	DWORD UsLow1 = UserT.dwLowDateTime;
 	DWORD UsHigh1 = UserT.dwHighDateTime;
 
-	Sleep(1000); // 1초 기다림
+	Sleep(1000);
 
 	GetSystemTimes(&IdleT, &KernelT, &UserT);
 	DWORD IdLow2 = IdleT.dwLowDateTime;
@@ -38,12 +33,16 @@ double cpuLoad() {
 	DWORD UsHigh2 = UserT.dwHighDateTime;
 	*/
 
-	// 1초 동안의 각 T을 계산함
-
-	// (temp) 시간 연결하기 (https://stackoverflow.com/questions/29266743/what-is-dwlowdatetime-and-dwhighdatetime)
+	// DWORD(4 bytes) 대신 ULARE_INTEGER, __int64 사용 -> (https://stackoverflow.com/questions/29266743/what-is-dwlowdatetime-and-dwhighdatetime) 참고
+	
+	FILETIME IdleT, KernelT, UserT;
 	ULARGE_INTEGER IdT, KeT, UsT;
+	BOOL res;
+	
+	res = GetSystemTimes(&IdleT, &KernelT, &UserT);
+	if (res == NULL) 
+		return 0; // if it can't get system times, it will return zero.
 
-	GetSystemTimes(&IdleT, &KernelT, &UserT);
 	IdT.LowPart = IdleT.dwLowDateTime;
 	IdT.HighPart = IdleT.dwHighDateTime;
 	KeT.LowPart = KernelT.dwLowDateTime;
@@ -69,7 +68,7 @@ double cpuLoad() {
 	__int64 KernelT_2 = KeT.QuadPart;
 	__int64 UserT_2 = UsT.QuadPart;
 
-	// CPU 사용률 - 1초
+	// CPU 사용률 -> 1초
 	__int64 IdleTime = IdleT_2 - IdleT_1;
 	__int64 KernelTime = KernelT_2 - KernelT_1;
 	__int64 UserTime = UserT_2 - UserT_1;
@@ -77,7 +76,40 @@ double cpuLoad() {
 	double result = (double)(UserTime + KernelTime - IdleTime) / (UserTime + KernelTime) * 100;
 
 	return result;
+	
+	/* 왜 아래처럼 해야 하는지 이해 안 감..!!
+	// set high, low in FILETIME structure (first time)
+		idle_High = idleTime.dwHighDateTime;
+		idle_Low = idleTime.dwLowDateTime;
+		kernel_High = kernelTime.dwHighDateTime;
+		kernel_Low = kernelTime.dwLowDateTime;
+		user_High = userTime.dwHighDateTime;
+		user_Low = userTime.dwLowDateTime;
 
+		high_1 = idle_High + kernel_High + user_High;
+		Low_1 = idle_Low + kernel_Low + user_Low;
+
+		Sleep(1000); // sleep to get system time for 1 sec
+
+		res = GetSystemTimes(&idleTime, &kernelTime, &userTime); // get system times (idle, kernel, user)
+		if (res == NULL) return 0; // if it can't get system times, it will return zero.
+
+		// set high, low in FILETIME structure (second time)
+		idle_High_2 = idleTime.dwHighDateTime;
+		idle_Low_2 = idleTime.dwLowDateTime;
+		kernel_High_2 = kernelTime.dwHighDateTime;
+		kernel_Low_2 = kernelTime.dwLowDateTime;
+		user_High_2 = userTime.dwHighDateTime;
+		user_Low_2 = userTime.dwLowDateTime;
+
+		high_2 = idle_High_2 + kernel_High_2 + user_High_2;
+		Low_2 = idle_Low_2 + kernel_Low_2 + user_Low_2;
+
+		// calculate time (first time minus second time)
+		idle = idle_Low_2 - idle_Low; // get time in idle mode 
+		kernel = kernel_Low_2 - kernel_Low;  // get time in kernel mode
+		user = user_Low_2 - user_Low;  // get time in user mode
+	*/
 }
 
 
@@ -88,28 +120,26 @@ int main(int arg, char* argv) { // main()의 매개변수 삽입
 	GetSystemInfo(&num);
 	printf("Number of CPUs : %d\n", num.dwNumberOfProcessors);
 
-
-	// 2. cpu load 출력
-	
-	// 2-1) 번호 + 현재 시간 (기준 시간 1초) -> OK
+	// 2. cpu load 출력 -> OK..?
 	SYSTEMTIME now;
-	unsigned int i = 0;
 	double arr[MAX_PROCESS];
+	double avg5 = 0.0, avg10 = 0.0, avg15 = 0.0;
+	int i = 0;
 
 	for (; i < MAX_LOOP; i++) {
 
-		// 2-2) cpu load 계산
-		double result = cpuLoad();
-		arr[i] = result;
+		arr[i] = cpuLoad();
 
 		GetLocalTime(&now);
 		printf(" %3d %04d.%02d.%02d %02d:%02d:%02d : ", i, now.wYear, now.wMonth, now.wDay, now.wHour, now.wMinute, now.wSecond);
 
-		if(i >= 1)
-			printf("[CPU Load: %3.2f%%] ", arr[i]);
-		
-		double avg5 = 0, avg10 = 0, avg15 = 0;
+		if (i == 0) {
+			printf("\n");
+			continue;
+		}
 
+		printf("[CPU Load: %3.2f%%] ", arr[i]);
+		
 		if (i >= 5) {
 			avg5 = (arr[i - 1] + arr[i - 2] + arr[i - 3] + arr[i - 4] + arr[i - 5]) / 5;
 			printf("[5sec avg: %3.2f%%] ", avg5);
@@ -124,8 +154,6 @@ int main(int arg, char* argv) { // main()의 매개변수 삽입
 		}
 
 		printf("\n");
-
-		// continue;
 	}
 
 	return 0;
