@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <string>
-#include <cstring>
 using namespace std;
 
 struct State {	// 각 상태를 노드(구조체)로 표현한다.
@@ -43,24 +42,24 @@ public:
 
 int main() {
 
-	TransitionTable table;	// transition table을 생성함
-	struct State* currentState = &(table.s1);  // 현재 상태 (시작 상태 s1으로 초기화)
-	string str;	// 사용자로부터 입력 받을 스트링
+	TransitionTable dfa;	// transition table을 생성함
+	string str;				// 사용자로부터 입력 받을 스트링
+
+	struct State* currentState = &(dfa.s1);  // 현재 상태 (시작 상태 s1으로 초기화)
 
 	cout << "스트링을 입력하세요.(0 또는 1만 가능) : ";
 	cin >> str;
 	size_t len = str.length(); // size_t = unsigned int
 
 
-	//
-	for(int i = 0; i <= len; i++)
+	// 문자열 맨 앞에서부터 하나씩 전이 함수를 적용시킨다.
+	for(int i = 0; i < len; i++)
 	{
-		currentState = table.transFunc(*(currentState), str[i]);
+		currentState = dfa.transFunc(*(currentState), str[i]);
 
 	}
-	//
-
-
+	
+	// F == r이면 accpet, F != r이면 reject로 메시지를 보낸다.
 	if (currentState->stateName == 'r')
 		cout << "input recognized" << endl;
 	else
