@@ -1,4 +1,4 @@
-// �Ϸ�
+// [컴파일러 prog 3] Recursive-descent Parser_완료
 #include <iostream>
 #include <cstring>
 #include <string>
@@ -6,9 +6,9 @@ using namespace std;
 
 #define MAX 100
 
-string input; // �Է� ��Ʈ��
-string leftParse; // ���Ľ�
-char nextSym;
+string input;		// 입력 스트링
+string leftParse;	// 좌파스
+char nextSym;		// 다음 입력 심볼
 
 bool pS(char nextSym);
 void pA(char nextSym);
@@ -31,7 +31,7 @@ int main() {
 	return 0;
 }
 
-bool pS(char nextSym) {
+bool pS(char nextSym) {	// 논터미널 S -> 프로시저 pS
 	if (nextSym == 'a') {
 		leftParse.append("1");
 		nextSym = getNextSym(&input);
@@ -48,7 +48,7 @@ bool pS(char nextSym) {
 	return true;
 }
 
-void pA(char nextSym) {
+void pA(char nextSym) { // 논터미널 A -> 프로시저 pA
 	if (nextSym == 'd') {
 		leftParse.append("3");
 		nextSym = getNextSym(&input);
@@ -69,7 +69,7 @@ void pA(char nextSym) {
 	*/
 }
 
-char getNextSym(string* input) {
+char getNextSym(string* input) { // 인풋 스트링에서 다음 입력 심볼을 반환한다. (이미 본 건 지운다.)
 
 	string tempInput = *input;
 
