@@ -1,10 +1,3 @@
-##################################
-## Final Exam                   ##
-## for Probability & Statistics ##
-## Seoyoung Jang                ##
-## 2022-12-19                   ##
-##################################
-
 ## Initial Settings
 setRepositories(ind = 1:7)
 
